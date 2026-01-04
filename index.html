@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Happy Birthday ❤️</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Background Music -->
+  <audio id="bgMusic" loop>
+    <source src="music/birthday.mp3" type="audio/mpeg">
+  </audio>
+ 
+  <!-- Confetti Canvas -->
+  <canvas id="confetti"></canvas>
+ 
+  <div class="container">
+    <h1 class="typing">Happy Birthday SUSU ❤️</h1>
+    <p class="subtitle">You make my life beautiful 💕</p>
+ 
+    <button onclick="startSurprise()">🎁 Click for Surprise</button>
+ 
+    <div id="surprise" class="hidden">
+      <p class="message">
+        Every moment with you is special 💖<br>
+        I'm so lucky to have you 🥰
+      </p>
+ 
+      <div class="gallery" id="imageGallery">
+        <div class="loading">Loading images...</div>
+      </div>
+      
+      <button id="feelingsBtn" class="feelings-btn">💖 My Feelings for You</button>
+    </div>
+  </div>
+ 
+  <div id="feelingsMessage" class="message-container hidden">
+    <div class="message-card">
+      <button id="closeMessage" class="close-btn">✕</button>
+      <h2>A Special Message for You</h2>
+      <p>Happy Birthday to the most beautiful soul in my life. You make my world brighter just by being in it. Every smile of yours feels like a gift meant just for me. Thank you for loving me, supporting me, and understanding me.</p>
+      <p>With you, every moment becomes special and meaningful. I wish you endless happiness, success, and peace today and always. I'm grateful every day that I get to call you mine.</p>
+      <p>Happy Birthday, my love! Here's to many more years of laughter, love and beautiful memories together.</p>
+      <!-- <button class="back-to-top">Back to Top</button> -->
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
