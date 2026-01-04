@@ -19,8 +19,11 @@ function startSurprise() {
   const surprise = document.getElementById('surprise');
   const bgMusic = document.getElementById('bgMusic');
   
-  // Show the surprise content
-  surprise.style.display = 'block';
+  // Show the surprise content by removing hidden class
+  surprise.classList.remove('hidden');
+  
+  // Load images when surprise is shown
+  loadImages();
   
   // Ensure music is set to loop
   bgMusic.loop = true;
@@ -94,54 +97,132 @@ function animateConfetti() {
   }
 }
 
+// Test different encoding approaches for image paths
+async function testImagePaths(imageFiles) {
+  const workingFiles = [];
+  
+  for (const filename of imageFiles) {
+    // Try different encoding methods
+    const attempts = [
+      filename, // Original
+      encodeURIComponent(filename), // URI encoded
+      encodeURI(filename), // URI encoded (less aggressive)
+      filename.replace(/'/g, "%27").replace(/"/g, "%22") // Manual quote encoding
+    ];
+    
+    for (const attempt of attempts) {
+      try {
+        const response = await fetch(`images/${attempt}`, { method: 'HEAD' });
+        if (response.ok) {
+          workingFiles.push(filename); // Use original filename for display
+          console.log(`✓ Found working path for: ${filename} -> ${attempt}`);
+          break;
+        }
+      } catch (e) {
+        // Try next encoding
+      }
+    }
+    
+    if (!workingFiles.includes(filename)) {
+      console.error(`✗ Could not find working path for: ${filename}`);
+    }
+  }
+  
+  return workingFiles;
+}
+
 // Function to load images from the images folder
 async function loadImages() {
   const gallery = document.getElementById('imageGallery');
   
   try {
-    // Static list of images for GitHub Pages compatibility
-    const imageFiles = [
-      "Another day after we broke up.jpeg",
-      "Even if your heart didn't love me, your eyes did.jpeg", 
-      "Food I crave more than biryani🥰.jpeg",
-      "I can't even explain this, ma❤️.jpeg",
-      "I love the way you breathe🫶🏻.jpeg",
-      "In ur innocent face, I see the beauty of untouched light.jpeg",
-      "I'd sacrifice my comfort, my pride—anything—for your smile.jpeg",
-      "Kudhanpu Bomma....jpeg",
-      "Lips like petals kissed by morning dew.jpeg",
-      "Madness spills from me, landing on you😍.jpeg",
-      "My little princess.jpeg",
-      "Next morning after our fight🤗.jpeg",
-      "Once upon a time, there were two souls.jpeg",
-      "Thanks maa🥲.jpeg",
-      "The Day you owned me🙈.jpeg",
-      "The day you surprised me by coming.jpeg",
-      "The mark you left🥰.jpeg",
-      "This is my Fav pic.jpeg",
-      "This is the movement that made me fall for you😍.jpeg",
-      "Those innocent eyes hold a world of wonder.jpeg",
-      "Together - not just our bodies🥰.jpeg",
-      "You're the moon that lights my night🧖‍♀️.jpeg",
-      "You've been my favorite person my whole life🤗.jpeg",
-      "😘.jpeg"
-    ];
+    // Try to fetch from server first (for local development)
+    let imageFiles;
+    try {
+      const response = await fetch('/list-images');
+      imageFiles = await response.json();
+    } catch (e) {
+      // Fallback to static list for GitHub Pages - using simple names without special characters
+      imageFiles = [
+        "Another day after we broke up.jpeg",
+        "Even if your heart didn't love me, your eyes did.jpeg", 
+        "Food I crave more than biryani🥰.jpeg",
+        "I can't even explain this, ma❤️.jpeg",
+        "I love the way you breathe🫶🏻.jpeg",
+        "In ur innocent face, I see the beauty of untouched light.jpeg",
+        "I'd sacrifice my comfort, my pride—anything—for your smile.jpeg",
+        "Kudhanpu Bomma....jpeg",
+        "Lips like petals kissed by morning dew.jpeg",
+        "Madness spills from me, landing on you😍.jpeg",
+        "My little princess.jpeg",
+        "Next morning after our fight🤗.jpeg",
+        "Once upon a time, there were two souls.jpeg",
+        "Thanks maa🥲.jpeg",
+        "The Day you owned me🙈.jpeg",
+        "The day you surprised me by coming.jpeg",
+        "The mark you left🥰.jpeg",
+        "This is my Fav pic.jpeg",
+        "This is the movement that made me fall for you😍.jpeg",
+        "Those innocent eyes hold a world of wonder.jpeg",
+        "Together - not just our bodies🥰.jpeg",
+        "You're the moon that lights my night🧖‍♀️.jpeg",
+        "You've been my favorite person my whole life🤗.jpeg",
+        "😘.jpeg"
+      ];
+      
+      // Try each image with different encoding approaches
+      imageFiles = await testImagePaths(imageFiles);
+    }
     
     // Clear loading message
     gallery.innerHTML = '';
     
     // Add each image to the gallery
-    imageFiles.forEach((image, index) => {
+    imageFiles.forEach(async (image, index) => {
       const imgContainer = document.createElement('div');
       imgContainer.className = 'gallery-item';
       
       // Get image name without extension
       const imageName = image.split('.').slice(0, -1).join('.').replace(/\(\d+\)/g, '').trim();
       
+      // Find the working path for this image
+      let workingPath = image;
+      const attempts = [
+        image, // Original
+        encodeURIComponent(image), // URI encoded
+        encodeURI(image), // URI encoded (less aggressive)
+        image.replace(/'/g, "%27").replace(/"/g, "%22") // Manual quote encoding
+      ];
+      
+      for (const attempt of attempts) {
+        try {
+          const response = await fetch(`images/${attempt}`, { method: 'HEAD' });
+          if (response.ok) {
+            workingPath = attempt;
+            break;
+          }
+        } catch (e) {
+          // Try next encoding
+        }
+      }
+      
       const img = document.createElement('img');
-      img.src = `images/${encodeURIComponent(image)}`;
+      img.src = `images/${workingPath}`;
       img.alt = `Memory ${index + 1}`;
       img.loading = 'lazy'; // Lazy load images for better performance
+      
+      // Add error handling for corrupt images
+      img.onerror = function() {
+        console.error(`Failed to load image: ${image}`);
+        imgContainer.style.display = 'none'; // Hide broken images
+        // Optionally show a placeholder
+        imgContainer.innerHTML = `<div class="error-placeholder">Image unavailable</div>`;
+        imgContainer.style.display = 'block';
+      };
+      
+      img.onload = function() {
+        console.log(`Successfully loaded: ${image}`);
+      };
       
       // Create overlay for image name with tooltip
       const overlay = document.createElement('div');
@@ -191,9 +272,6 @@ async function loadImages() {
 // Add click handler to the button
 const button = document.querySelector('button');
 button.addEventListener('click', startSurprise);
-
-// Load images when the page loads
-window.addEventListener('DOMContentLoaded', loadImages);
 
 // Get DOM elements
 const feelingsBtn = document.getElementById('feelingsBtn');
