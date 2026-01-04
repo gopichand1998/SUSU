@@ -101,6 +101,12 @@ function animateConfetti() {
 async function loadImages() {
   const gallery = document.getElementById('imageGallery');
   
+  // Prevent duplicate loading
+  if (gallery.children.length > 1) {
+    console.log('Images already loaded, skipping...');
+    return;
+  }
+  
   try {
     // Try to fetch from server first (for local development)
     let imageFiles;
@@ -142,30 +148,28 @@ async function loadImages() {
     
     // Add each image to the gallery - optimized for speed
     imageFiles.forEach((image, index) => {
-      // Use setTimeout to prevent blocking and show images progressively
-      setTimeout(() => {
-        const imgContainer = document.createElement('div');
-        imgContainer.className = 'gallery-item';
-        
-        // Get image name without extension
-        const imageName = image.split('.').slice(0, -1).join('.').replace(/\(\d+\)/g, '').trim();
-        
-        const img = document.createElement('img');
-        // Use direct path - much faster than testing multiple encodings
-        img.src = `images/${image}`;
-        img.alt = `Memory ${index + 1}`;
-        img.loading = 'lazy'; // Lazy load images for better performance
-        
-        // Add error handling for corrupt images
-        img.onerror = function() {
-          console.error(`Failed to load image: ${image}`);
-          // Try alternative encoding if direct path fails
-          img.src = `images/${encodeURIComponent(image)}`;
-        };
-        
-        img.onload = function() {
-          console.log(`Successfully loaded: ${image}`);
-        };
+      const imgContainer = document.createElement('div');
+      imgContainer.className = 'gallery-item';
+      
+      // Get image name without extension
+      const imageName = image.split('.').slice(0, -1).join('.').replace(/\(\d+\)/g, '').trim();
+      
+      const img = document.createElement('img');
+      // Use direct path - much faster than testing multiple encodings
+      img.src = `images/${image}`;
+      img.alt = `Memory ${index + 1}`;
+      img.loading = 'lazy'; // Lazy load images for better performance
+      
+      // Add error handling for corrupt images
+      img.onerror = function() {
+        console.error(`Failed to load image: ${image}`);
+        // Try alternative encoding if direct path fails
+        img.src = `images/${encodeURIComponent(image)}`;
+      };
+      
+      img.onload = function() {
+        console.log(`Successfully loaded: ${image}`);
+      };
       
       // Create overlay for image name with tooltip
       const overlay = document.createElement('div');
@@ -198,14 +202,13 @@ async function loadImages() {
       });
       
       // Assemble the elements
-        nameContainer.appendChild(nameSpan);
-        nameContainer.appendChild(arrow);
-        overlay.appendChild(nameContainer);
-        
-        imgContainer.appendChild(img);
-        imgContainer.appendChild(overlay);
-        gallery.appendChild(imgContainer);
-      }, index * 50); // Stagger image loading by 50ms for better performance
+      nameContainer.appendChild(nameSpan);
+      nameContainer.appendChild(arrow);
+      overlay.appendChild(nameContainer);
+      
+      imgContainer.appendChild(img);
+      imgContainer.appendChild(overlay);
+      gallery.appendChild(imgContainer);
     });
   } catch (error) {
     console.error('Error loading images:', error);
