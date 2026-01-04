@@ -99,9 +99,33 @@ async function loadImages() {
   const gallery = document.getElementById('imageGallery');
   
   try {
-    // Fetch the list of images from the server
-    const response = await fetch('/list-images');
-    const imageFiles = await response.json();
+    // Static list of images for GitHub Pages compatibility
+    const imageFiles = [
+      "Another day after we broke up.jpeg",
+      "Even if your heart didn't love me, your eyes did.jpeg", 
+      "Food I crave more than biryani🥰.jpeg",
+      "I can't even explain this, ma❤️.jpeg",
+      "I love the way you breathe🫶🏻.jpeg",
+      "In ur innocent face, I see the beauty of untouched light.jpeg",
+      "I'd sacrifice my comfort, my pride—anything—for your smile.jpeg",
+      "Kudhanpu Bomma....jpeg",
+      "Lips like petals kissed by morning dew.jpeg",
+      "Madness spills from me, landing on you😍.jpeg",
+      "My little princess.jpeg",
+      "Next morning after our fight🤗.jpeg",
+      "Once upon a time, there were two souls.jpeg",
+      "Thanks maa🥲.jpeg",
+      "The Day you owned me🙈.jpeg",
+      "The day you surprised me by coming.jpeg",
+      "The mark you left🥰.jpeg",
+      "This is my Fav pic.jpeg",
+      "This is the movement that made me fall for you😍.jpeg",
+      "Those innocent eyes hold a world of wonder.jpeg",
+      "Together - not just our bodies🥰.jpeg",
+      "You're the moon that lights my night🧖‍♀️.jpeg",
+      "You've been my favorite person my whole life🤗.jpeg",
+      "😘.jpeg"
+    ];
     
     // Clear loading message
     gallery.innerHTML = '';
