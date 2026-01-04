@@ -97,40 +97,6 @@ function animateConfetti() {
   }
 }
 
-// Test different encoding approaches for image paths
-async function testImagePaths(imageFiles) {
-  const workingFiles = [];
-  
-  for (const filename of imageFiles) {
-    // Try different encoding methods
-    const attempts = [
-      filename, // Original
-      encodeURIComponent(filename), // URI encoded
-      encodeURI(filename), // URI encoded (less aggressive)
-      filename.replace(/'/g, "%27").replace(/"/g, "%22") // Manual quote encoding
-    ];
-    
-    for (const attempt of attempts) {
-      try {
-        const response = await fetch(`images/${attempt}`, { method: 'HEAD' });
-        if (response.ok) {
-          workingFiles.push(filename); // Use original filename for display
-          console.log(`✓ Found working path for: ${filename} -> ${attempt}`);
-          break;
-        }
-      } catch (e) {
-        // Try next encoding
-      }
-    }
-    
-    if (!workingFiles.includes(filename)) {
-      console.error(`✗ Could not find working path for: ${filename}`);
-    }
-  }
-  
-  return workingFiles;
-}
-
 // Function to load images from the images folder
 async function loadImages() {
   const gallery = document.getElementById('imageGallery');
@@ -142,7 +108,7 @@ async function loadImages() {
       const response = await fetch('/list-images');
       imageFiles = await response.json();
     } catch (e) {
-      // Fallback to static list for GitHub Pages - using simple names without special characters
+      // Fallback to static list for GitHub Pages - optimized for speed
       imageFiles = [
         "Another day after we broke up.jpeg",
         "Even if your heart didn't love me, your eyes did.jpeg", 
@@ -169,60 +135,37 @@ async function loadImages() {
         "You've been my favorite person my whole life🤗.jpeg",
         "😘.jpeg"
       ];
-      
-      // Try each image with different encoding approaches
-      imageFiles = await testImagePaths(imageFiles);
     }
     
     // Clear loading message
     gallery.innerHTML = '';
     
-    // Add each image to the gallery
-    imageFiles.forEach(async (image, index) => {
-      const imgContainer = document.createElement('div');
-      imgContainer.className = 'gallery-item';
-      
-      // Get image name without extension
-      const imageName = image.split('.').slice(0, -1).join('.').replace(/\(\d+\)/g, '').trim();
-      
-      // Find the working path for this image
-      let workingPath = image;
-      const attempts = [
-        image, // Original
-        encodeURIComponent(image), // URI encoded
-        encodeURI(image), // URI encoded (less aggressive)
-        image.replace(/'/g, "%27").replace(/"/g, "%22") // Manual quote encoding
-      ];
-      
-      for (const attempt of attempts) {
-        try {
-          const response = await fetch(`images/${attempt}`, { method: 'HEAD' });
-          if (response.ok) {
-            workingPath = attempt;
-            break;
-          }
-        } catch (e) {
-          // Try next encoding
-        }
-      }
-      
-      const img = document.createElement('img');
-      img.src = `images/${workingPath}`;
-      img.alt = `Memory ${index + 1}`;
-      img.loading = 'lazy'; // Lazy load images for better performance
-      
-      // Add error handling for corrupt images
-      img.onerror = function() {
-        console.error(`Failed to load image: ${image}`);
-        imgContainer.style.display = 'none'; // Hide broken images
-        // Optionally show a placeholder
-        imgContainer.innerHTML = `<div class="error-placeholder">Image unavailable</div>`;
-        imgContainer.style.display = 'block';
-      };
-      
-      img.onload = function() {
-        console.log(`Successfully loaded: ${image}`);
-      };
+    // Add each image to the gallery - optimized for speed
+    imageFiles.forEach((image, index) => {
+      // Use setTimeout to prevent blocking and show images progressively
+      setTimeout(() => {
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'gallery-item';
+        
+        // Get image name without extension
+        const imageName = image.split('.').slice(0, -1).join('.').replace(/\(\d+\)/g, '').trim();
+        
+        const img = document.createElement('img');
+        // Use direct path - much faster than testing multiple encodings
+        img.src = `images/${image}`;
+        img.alt = `Memory ${index + 1}`;
+        img.loading = 'lazy'; // Lazy load images for better performance
+        
+        // Add error handling for corrupt images
+        img.onerror = function() {
+          console.error(`Failed to load image: ${image}`);
+          // Try alternative encoding if direct path fails
+          img.src = `images/${encodeURIComponent(image)}`;
+        };
+        
+        img.onload = function() {
+          console.log(`Successfully loaded: ${image}`);
+        };
       
       // Create overlay for image name with tooltip
       const overlay = document.createElement('div');
@@ -255,13 +198,14 @@ async function loadImages() {
       });
       
       // Assemble the elements
-      nameContainer.appendChild(nameSpan);
-      nameContainer.appendChild(arrow);
-      overlay.appendChild(nameContainer);
-      
-      imgContainer.appendChild(img);
-      imgContainer.appendChild(overlay);
-      gallery.appendChild(imgContainer);
+        nameContainer.appendChild(nameSpan);
+        nameContainer.appendChild(arrow);
+        overlay.appendChild(nameContainer);
+        
+        imgContainer.appendChild(img);
+        imgContainer.appendChild(overlay);
+        gallery.appendChild(imgContainer);
+      }, index * 50); // Stagger image loading by 50ms for better performance
     });
   } catch (error) {
     console.error('Error loading images:', error);
