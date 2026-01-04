@@ -97,6 +97,36 @@ function animateConfetti() {
   }
 }
 
+// Get image files with exact filenames from filesystem
+function getImageFiles() {
+  return [
+    "Another day after we broke up.jpeg",
+    "Even if your heart didn’t love me, your eyes did.jpeg",
+    "Food I crave more than biryani🥰.jpeg",
+    "I can’t even explain this, ma❤️.jpeg",
+    "I love the way you breathe🫶🏻.jpeg",
+    "In ur innocent face, I see the beauty of untouched light.jpeg",
+    "I’d sacrifice my comfort, my pride—anything—for your smile.jpeg",
+    "Kudhanpu Bomma....jpeg",
+    "Lips like petals kissed by morning dew.jpeg",
+    "Madness spills from me, landing on you😍.jpeg",
+    "My little princess.jpeg",
+    "Next morning after our fight🤗.jpeg",
+    "Once upon a time, there were two souls.jpeg",
+    "Thanks maa🥲.jpeg",
+    "The Day you owned me🙈.jpeg",
+    "The day you surprised me by coming.jpeg",
+    "The mark you left🥰.jpeg",
+    "This is my Fav pic.jpeg",
+    "This is the movement that made me fall for you😍.jpeg",
+    "Those innocent eyes hold a world of wonder.jpeg",
+    "Together - not just our bodies🥰.jpeg",
+    "You’re the moon that lights my night🧖‍♀️.jpeg",
+    "You’ve been my favorite person my whole life🤗.jpeg",
+    "😘.jpeg",
+  ];
+}
+
 // Function to load images from the images folder
 async function loadImages() {
   const gallery = document.getElementById('imageGallery');
@@ -115,32 +145,7 @@ async function loadImages() {
       imageFiles = await response.json();
     } catch (e) {
       // Fallback to static list for GitHub Pages - optimized for speed
-      imageFiles = [
-        "Another day after we broke up.jpeg",
-        "Even if your heart didn't love me, your eyes did.jpeg", 
-        "Food I crave more than biryani🥰.jpeg",
-        "I can't even explain this, ma❤️.jpeg",
-        "I love the way you breathe🫶🏻.jpeg",
-        "In ur innocent face, I see the beauty of untouched light.jpeg",
-        "I'd sacrifice my comfort, my pride—anything—for your smile.jpeg",
-        "Kudhanpu Bomma....jpeg",
-        "Lips like petals kissed by morning dew.jpeg",
-        "Madness spills from me, landing on you😍.jpeg",
-        "My little princess.jpeg",
-        "Next morning after our fight🤗.jpeg",
-        "Once upon a time, there were two souls.jpeg",
-        "Thanks maa🥲.jpeg",
-        "The Day you owned me🙈.jpeg",
-        "The day you surprised me by coming.jpeg",
-        "The mark you left🥰.jpeg",
-        "This is my Fav pic.jpeg",
-        "This is the movement that made me fall for you😍.jpeg",
-        "Those innocent eyes hold a world of wonder.jpeg",
-        "Together - not just our bodies🥰.jpeg",
-        "You're the moon that lights my night🧖‍♀️.jpeg",
-        "You've been my favorite person my whole life🤗.jpeg",
-        "😘.jpeg"
-      ];
+      imageFiles = getImageFiles();
     }
     
     // Clear loading message
@@ -163,8 +168,33 @@ async function loadImages() {
       // Add error handling for corrupt images
       img.onerror = function() {
         console.error(`Failed to load image: ${image}`);
-        // Try alternative encoding if direct path fails
-        img.src = `images/${encodeURIComponent(image)}`;
+        
+        // Try different encoding approaches
+        const alternatives = [
+          encodeURIComponent(image), // URI encoded
+          image.replace(/'/g, "'").replace(/"/g, '"'), // Smart to regular quotes
+          image.replace(/'/g, "'").replace(/"/g, '"').replace(/—/g, '--'), // Also fix em dash
+        ];
+        
+        let attemptIndex = 0;
+        
+        function tryAlternative() {
+          if (attemptIndex >= alternatives.length) {
+            console.error(`All attempts failed for: ${image}`);
+            // Show placeholder
+            imgContainer.innerHTML = `<div class="error-placeholder">Image unavailable: ${imageName}</div>`;
+            return;
+          }
+          
+          const altSrc = `images/${alternatives[attemptIndex]}`;
+          console.log(`Trying alternative ${attemptIndex + 1}: ${altSrc}`);
+          img.src = altSrc;
+          attemptIndex++;
+        }
+        
+        // Override onerror for retries
+        img.onerror = tryAlternative;
+        tryAlternative();
       };
       
       img.onload = function() {
