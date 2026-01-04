@@ -7,6 +7,19 @@ body {
   overflow-x: hidden;
   overflow-y: scroll;
 }
+
+.error-placeholder {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
  
 .container {
   text-align: center;
